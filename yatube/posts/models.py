@@ -77,11 +77,13 @@ class Follow(models.Model):
         related_name='follower',
         verbose_name='Пользователь'
     )
-    author = models.OneToOneField(
+    author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='following',
-        verbose_name='Автор')
+        verbose_name='Автор',
+        unique=True
+    )
 
     class Meta:
         constraints = [
