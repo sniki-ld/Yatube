@@ -156,10 +156,6 @@ def profile_follow(request, username):
     """Подписаться на автора."""
     author = get_object_or_404(User, username=username)
     Follow.objects.get_or_create(user=request.user, author=author)
-    try:
-        request.user == author
-    except IntegrityError:
-        return 'Error'
     return redirect('posts:follow_index')
 
 
