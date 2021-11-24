@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CommentForm, PostForm
@@ -9,6 +11,7 @@ POST_PER_PAGE = 10
 
 
 def index(request):
+    """Постраничный вывод всех записей."""
     title = 'Последние обновления на сайте'
     post_list = Post.objects.all()
     paginator = Paginator(post_list, POST_PER_PAGE)
@@ -22,6 +25,7 @@ def index(request):
 
 
 def group_posts(request, slug):
+    """Постраничный вывод всех записей группы."""
     title = 'Записи сообщества'
     group = get_object_or_404(Group, slug=slug)
     post_list = group.posts.all()
@@ -38,7 +42,7 @@ def group_posts(request, slug):
 
 
 def profile(request, username):
-    # Здесь код запроса к модели и создание словаря контекста
+    """Постраничный вывод всех записей автора."""
     title = 'Профайл пользователя'
     author = get_object_or_404(User, username=username)
     post_list = author.posts.all()
@@ -61,6 +65,10 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
+    """
+    Детальный вывод одного поста с комментариями
+    и формой для комментария.
+    """
     title = 'Полный текст поста'
     post = get_object_or_404(Post, pk=post_id)
     count = post.author.posts.count()
@@ -79,6 +87,7 @@ def post_detail(request, post_id):
 
 @login_required
 def post_create(request):
+    """Форма создания поста."""
     form = PostForm(request.POST or None, files=request.FILES or None)
     if request.method == 'POST':
         if form.is_valid():
@@ -93,6 +102,7 @@ def post_create(request):
 
 @login_required
 def post_edit(request, post_id):
+    """Форма редактирования поста."""
     post = get_object_or_404(Post, pk=post_id)
     form = PostForm(request.POST or None,
                     files=request.FILES or None, instance=post)
@@ -112,6 +122,7 @@ def post_edit(request, post_id):
 
 @login_required
 def add_comment(request, post_id):
+    """Форма для добавления комментариев к посту."""
     post = get_object_or_404(Post, pk=post_id)
     form = CommentForm(request.POST or None)
     if request.method == 'POST':
@@ -126,6 +137,7 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
+    """Записи авторов, на которых подписан текущий пользователь."""
     title = 'Ваши подписки'
     post_list_follow = Post.objects.filter(
         author__following__user=request.user)
@@ -142,20 +154,21 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
+    """Подписаться на автора."""
     author = get_object_or_404(User, username=username)
-    if Follow.objects.filter(
-            user=request.user,
-            author=author).exists() or request.user == author:
-        return redirect('posts:index')
-    Follow.objects.create(user=request.user, author=author)
+    try:
+        request.user == author
+    except IntegrityError:
+        return HttpResponse('Error')
 
+    Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('posts:follow_index')
 
 
 @login_required
 def profile_unfollow(request, username):
+    """Отписаться от подписки на автора."""
     author = get_object_or_404(User, username=username)
-    unfollow = Follow.objects.get(user=request.user, author=author)
-    unfollow.delete()
+    Follow.objects.filter(user=request.user, author=author).delete()
 
     return redirect('posts:index')

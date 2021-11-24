@@ -183,12 +183,13 @@ class PostPagesTests(BaseTest):
         Авторизованный пользователь
         может подписываться на других пользователей.
         """
-        follow_count = Follow.objects.count()
-        author = get_object_or_404(User, username='Ivan')
-        Follow.objects.create(
-            user=self.user2, author=author)
-        self.assertEqual(Follow.objects.count(),
-                         follow_count + 1)
+        response = (self.authorized_client2.
+                    get(reverse('posts:profile_follow',
+                                kwargs={'username': 'Ivan'}), follow=True))
+        author = response.context.get('post').author
+        self.assertRedirects(response, '/follow/')
+        self.assertTrue(Follow.objects.filter(user=self.user2,
+                                              author=author).exists())
 
     def test_subscription_anonymous(self):
         """
@@ -205,26 +206,25 @@ class PostPagesTests(BaseTest):
     def test_unsubscribe(self):
         """
         Авторизованный пользователь может
-        удалять других пользователей из подписок.
+        удалять пользователей, на которых он подписан из подписок.
         """
-        before_creation_count = Follow.objects.count()
+        after_del_count = Follow.objects.count()
+        response = (self.authorized_client2.
+                    get(reverse('posts:profile_unfollow',
+                                kwargs={'username': 'Ivan'}), follow=True))
         author = get_object_or_404(User, username='Ivan')
         Follow.objects.create(user=self.user2, author=author)
-        after_creation_count = Follow.objects.count()
-        unfollow = Follow.objects.get(user=self.user2, author=author)
-        unfollow.delete()
-        after_deletion_count = Follow.objects.count()
-
-        self.assertFalse(before_creation_count, after_creation_count)
-        self.assertEqual(before_creation_count, after_deletion_count)
-        self.assertEqual(Follow.objects.count(), after_deletion_count)
+        Follow.objects.filter(user=self.user2, author=author).delete()
+        self.assertRedirects(response, '/')
+        self.assertFalse(Follow.objects.filter(user=self.user2,
+                                               author=author).exists())
+        self.assertEqual(Follow.objects.count(), after_del_count - 1)
 
     def test_new_record_if_signed(self):
         """
         Новая запись пользователя появляется в ленте тех, кто на него подписан.
         """
         author = get_object_or_404(User, username='Ivan')
-        Follow.objects.create(user=self.user2, author=author)
         post = Post.objects.create(
             author=author,
             text='Пост для подписки')
@@ -247,7 +247,7 @@ class PostPagesTests(BaseTest):
         post = Post.objects.create(
             author=author,
             text='Пост для подписки')
-        response = (self.authorized_client2.
+        response = (self.authorized_client.
                     get(reverse('posts:follow_index')))
 
         self.assertNotIn(post, response.context['page_obj'])

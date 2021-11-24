@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q, F
 
 User = get_user_model()
 
@@ -76,8 +77,16 @@ class Follow(models.Model):
         related_name='follower',
         verbose_name='Пользователь'
     )
-    author = models.ForeignKey(
+    author = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name='following',
         verbose_name='Автор')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_follow'),
+            models.CheckConstraint(check=~Q(user=F('author')),
+                                   name='user_not_author')
+        ]

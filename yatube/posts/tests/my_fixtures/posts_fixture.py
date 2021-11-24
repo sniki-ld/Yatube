@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
 from ...forms import PostForm
-from ...models import Group, Post
+from ...models import Group, Post, Follow
 
 User = get_user_model()
 
@@ -32,6 +32,8 @@ class BaseTest(TestCase):
                 text=f'Текст {post_num}',
                 group=cls.group)
 
+        cls.follow = Follow.objects.create(user=cls.user2,
+                                           author=cls.post.author)
         cls.form = PostForm()
 
     def setUp(self):
