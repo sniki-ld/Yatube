@@ -159,7 +159,7 @@ def profile_follow(request, username):
     try:
         request.user == author
     except IntegrityError:
-        return 'core/404.html'
+        return 'Error'
     return redirect('posts:follow_index')
 
 
