@@ -159,6 +159,7 @@ def profile_follow(request, username):
         return redirect('posts:follow_index')
     return redirect('posts:index')
 
+
 @login_required
 def profile_unfollow(request, username):
     """Отписаться от подписки на автора."""
