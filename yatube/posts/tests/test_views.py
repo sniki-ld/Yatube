@@ -2,8 +2,8 @@ from django import forms
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from ..models import Follow, Post
 
+from ..models import Follow, Post
 from ..tests.my_fixtures.posts_fixture import BaseTest, User
 
 
@@ -159,37 +159,40 @@ class PostPagesTests(BaseTest):
                 post = response.context['page_obj'][0]
                 self.assertTrue(post.group)
                 self.assertIn(post, response.context['page_obj'])
+                self.assertEqual(response.context['page_obj'][0].group.title,
+                                 'Тестовая группа')
 
     def test_cache_page_index(self):
         """Проверка кеширования главной страницы"""
-        res_before_del = self.authorized_client.get(
-            str(reverse('posts:index') + '?page=2'))
+        res_before_del = self.authorized_client.get(reverse('posts:index'))
         content_page_before = res_before_del.content
-        Post.objects.filter(pk=1).delete()
-        res_after_del = self.authorized_client.get(
-            str(reverse('posts:index') + '?page=2'))
+        Post.objects.filter(pk=12).delete()
+        res_after_del = self.authorized_client.get(reverse('posts:index'))
         content_page_after = res_after_del.content
         self.assertEqual(content_page_before, content_page_after)
-
         cache.clear()
         res_after_cache_del = self.authorized_client.get(
-            str(reverse('posts:index') + '?page=2'))
+            reverse('posts:index'))
         content_page_after_cache_del = res_after_cache_del.content
         self.assertNotEqual(content_page_before,
                             content_page_after_cache_del)
 
     def test_subscription(self):
         """
-        Авторизованный пользователь
-        может подписываться на других пользователей.
+        Авторизованный пользователь может
+        подписываться на других пользователей.
         """
-        response = (self.authorized_client2.
-                    get(reverse('posts:profile_follow',
-                                kwargs={'username': 'Ivan'}), follow=True))
-        author = response.context.get('post').author
+        user_author = User.objects.create_user(username='Igor')
+        before_subscription = Follow.objects.filter(user=self.user2,
+                                                    author=user_author).exists()
+        response = self.authorized_client2.get(
+            reverse('posts:profile_follow',
+                    kwargs={'username': user_author.username}),
+            follow=True)
+        after_subscription = Follow.objects.filter(user=self.user2,
+                                                   author=user_author).exists()
         self.assertRedirects(response, '/follow/')
-        self.assertTrue(Follow.objects.filter(user=self.user2,
-                                              author=author).exists())
+        self.assertNotEqual(before_subscription, after_subscription)
 
     def test_subscription_anonymous(self):
         """
@@ -208,17 +211,16 @@ class PostPagesTests(BaseTest):
         Авторизованный пользователь может
         удалять пользователей, на которых он подписан из подписок.
         """
-        after_del_count = Follow.objects.count()
+        author = Post.objects.get(pk=1).author
+        before_unsubscribe = Follow.objects.filter(
+            user=self.user2, author=author).exists()
         response = (self.authorized_client2.
                     get(reverse('posts:profile_unfollow',
                                 kwargs={'username': 'Ivan'}), follow=True))
-        author = get_object_or_404(User, username='Ivan')
-        Follow.objects.create(user=self.user2, author=author)
-        Follow.objects.filter(user=self.user2, author=author).delete()
+        after_unsubscribe = Follow.objects.filter(
+            user=self.user2, author=author).exists()
         self.assertRedirects(response, '/')
-        self.assertFalse(Follow.objects.filter(user=self.user2,
-                                               author=author).exists())
-        self.assertEqual(Follow.objects.count(), after_del_count - 1)
+        self.assertNotEqual(before_unsubscribe, after_unsubscribe)
 
     def test_new_record_if_signed(self):
         """
@@ -233,7 +235,6 @@ class PostPagesTests(BaseTest):
         first_object = response.context['page_obj'][0]
         post_author_0 = first_object.author
         post_text_0 = first_object.text
-
         self.assertEqual(post_author_0, author)
         self.assertEqual(post_text_0, 'Пост для подписки')
         self.assertIn(post, response.context['page_obj'])
