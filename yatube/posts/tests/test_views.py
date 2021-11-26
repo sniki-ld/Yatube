@@ -183,8 +183,8 @@ class PostPagesTests(BaseTest):
         подписываться на других пользователей.
         """
         user_author = User.objects.create_user(username='Igor')
-        before_subscription = Follow.objects.filter(user=self.user2,
-                                                    author=user_author).exists()
+        before_subscription = Follow.objects.filter(
+            user=self.user2, author=user_author).exists()
         response = self.authorized_client2.get(
             reverse('posts:profile_follow',
                     kwargs={'username': user_author.username}),
