@@ -4,18 +4,20 @@
 {% block title %}{{ title }}: {{ author.username }}{% endblock %}
 {% block content %}
   <div class="container py-5">
+  <div class="mb-5">
     <h1 class="title">Все посты пользователя {{ author.get_full_name }}</h1>
     <h3 class="title">Всего постов: {{ count }}</h3><br>
     {% if request.user != author %}
     {% if following %}
-    <a class="btn btn-outline-primary" href="{% url 'posts:profile_unfollow' author.username %}"
+    <p><a class="btn btn-outline-primary" href="{% url 'posts:profile_unfollow' author.username %}"
        role="button">Отписаться</a>
     {% else %}
       <a class="btn btn-outline-primary" href="{% url 'posts:profile_follow' author.username %}"
          role="button">Подписаться</a>
+      </p>
     {% endif %}
     {% endif %}
-
+  </div>
     <article>
       {% for post in page_obj %}
         <ul>
