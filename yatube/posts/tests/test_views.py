@@ -159,8 +159,7 @@ class PostPagesTests(BaseTest):
                 post = response.context['page_obj'][0]
                 self.assertTrue(post.group)
                 self.assertIn(post, response.context['page_obj'])
-                self.assertEqual(response.context['page_obj'][0].group.title,
-                                 'Тестовая группа')
+                self.assertEqual(post.group, self.group)
 
     def test_cache_page_index(self):
         """Проверка кеширования главной страницы"""
@@ -183,16 +182,15 @@ class PostPagesTests(BaseTest):
         подписываться на других пользователей.
         """
         user_author = User.objects.create_user(username='Igor')
-        before_subscription = Follow.objects.filter(
-            user=self.user2, author=user_author).exists()
+        self.assertFalse(Follow.objects.filter(
+            user=self.user2, author=user_author).exists())
         response = self.authorized_client2.get(
             reverse('posts:profile_follow',
                     kwargs={'username': user_author.username}),
             follow=True)
-        after_subscription = Follow.objects.filter(user=self.user2,
-                                                   author=user_author).exists()
+        self.assertTrue(Follow.objects.filter(user=self.user2,
+                                              author=user_author).exists())
         self.assertRedirects(response, '/follow/')
-        self.assertNotEqual(before_subscription, after_subscription)
 
     def test_subscription_anonymous(self):
         """
@@ -212,15 +210,15 @@ class PostPagesTests(BaseTest):
         удалять пользователей, на которых он подписан из подписок.
         """
         author = Post.objects.get(pk=1).author
-        before_unsubscribe = Follow.objects.filter(
-            user=self.user2, author=author).exists()
+        self.assertTrue(Follow.objects.filter(
+            user=self.user2, author=author).exists())
         response = (self.authorized_client2.
                     get(reverse('posts:profile_unfollow',
-                                kwargs={'username': 'Ivan'}), follow=True))
-        after_unsubscribe = Follow.objects.filter(
-            user=self.user2, author=author).exists()
+                                kwargs={'username': author.username}),
+                        follow=True))
+        self.assertFalse(Follow.objects.filter(
+            user=self.user2, author=author).exists())
         self.assertRedirects(response, '/')
-        self.assertNotEqual(before_unsubscribe, after_unsubscribe)
 
     def test_new_record_if_signed(self):
         """
