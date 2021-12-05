@@ -1,12 +1,10 @@
 {% extends "base.html" %}
+
 {% block title %}Custom 500{% endblock %}
 {% block content %}
-
   <div class="container py-5">
     <h1 class="title">Custom 500</h1><br>
-    <p><a href="{% url 'posts:index' %}">
-      Идите на главную</a>
-    </p>
+    <p><a href="{% url 'posts:index' %}">Вернуться на главную</a></p>
   </div>
 
 {% endblock %}

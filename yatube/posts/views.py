@@ -8,13 +8,19 @@ from .models import Comment, Follow, Group, Post, User
 POST_PER_PAGE = 10
 
 
+def paging_records(request, post_list):
+    """Постраничный вывод."""
+    paginator = Paginator(post_list, POST_PER_PAGE)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return page_obj
+
+
 def index(request):
     """Постраничный вывод всех записей."""
     title = 'Последние обновления на сайте'
     post_list = Post.objects.all()
-    paginator = Paginator(post_list, POST_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paging_records(request, post_list)
     context = {
         'title': title,
         'page_obj': page_obj,
@@ -27,9 +33,7 @@ def group_posts(request, slug):
     title = 'Записи сообщества'
     group = get_object_or_404(Group, slug=slug)
     post_list = group.posts.all()
-    paginator = Paginator(post_list, POST_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paging_records(request, post_list)
 
     context = {
         'title': title,
@@ -44,9 +48,7 @@ def profile(request, username):
     title = 'Профайл пользователя'
     author = get_object_or_404(User, username=username)
     post_list = author.posts.all()
-    paginator = Paginator(post_list, POST_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paging_records(request, post_list)
     count = author.posts.count()
     following = None
     if request.user.is_authenticated:
@@ -139,9 +141,7 @@ def follow_index(request):
     title = 'Ваши подписки'
     post_list_follow = Post.objects.filter(
         author__following__user=request.user)
-    paginator = Paginator(post_list_follow, POST_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paging_records(request, post_list_follow)
 
     context = {
         'title': title,

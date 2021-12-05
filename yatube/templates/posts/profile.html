@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load thumbnail %}
 
 {% block title %}{{ title }}: {{ author.username }}{% endblock %}
 {% block content %}
@@ -25,9 +24,7 @@
             Дата публикации: {{ post.pub_date|date:"d E Y" }}
           </li>
         </ul>
-         {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-           <img class="card-img my-2" src="{{ im.url }}" alt="">
-         {% endthumbnail %}
+        {% include 'posts/includes/thumbnail.html' %}
         <p class="post_text">{{ post.text|truncatewords:25 }}</p>
         <p><a href="{% url 'posts:post_detail' post.pk %}" class='btn btn-outline-primary'>
           Подробная информация</a></p>

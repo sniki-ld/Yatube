@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+
 {% block content %}
-  <h1>Custom CSRF check error. 403</h1>
+  <div class="container py-5">
+  <h1 class="title">Custom CSRF check error. 403</h1><br>
+   <p class="post_text"><a href="{% url 'posts:index' %}">Вернуться на главную</a></p>
+  </div>
 {% endblock %} 

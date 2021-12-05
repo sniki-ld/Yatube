@@ -1,29 +1,26 @@
-from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
 from django.urls import reverse
 
-User = get_user_model()
+from posts.tests.my_fixtures.posts_fixture import BaseTest, User
 
 
-class UserPagesTests(TestCase):
-    def setUp(self):
-        self.guest_client = Client()
-
+class UserPagesTests(BaseTest):
     def test_new_user_create(self):
         """
         Валидная форма со страницы регистрации
         создаёт новую запись в User.
         """
-        users_count = User.objects.count()
+        self.assertFalse(User.objects.filter(username='StepStep').exists())
+
         form_data = {
             'username': 'StepStep',
             'password1': '12345stepan',
             'password2': '12345stepan'
         }
+
         response = self.guest_client.post(
             reverse('users:signup'),
             data=form_data,
             follow=True)
 
         self.assertRedirects(response, reverse('posts:index'))
-        self.assertEqual(User.objects.count(), users_count + 1)
+        self.assertTrue(User.objects.filter(username='StepStep').exists())

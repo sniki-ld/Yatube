@@ -10,3 +10,4 @@ sorl-thumbnail==12.7.0
 openpyxl==3.0.9
 
 django-debug-toolbar~=3.2.2
+django-posts~=0.3.0

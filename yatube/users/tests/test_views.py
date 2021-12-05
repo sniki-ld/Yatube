@@ -1,22 +1,10 @@
-from django.contrib.auth import get_user_model
 from django import forms
-from django.test import Client, TestCase
 from django.urls import reverse
 
-User = get_user_model()
+from posts.tests.my_fixtures.posts_fixture import BaseTest
 
 
-class UserPagesTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = User.objects.create_user(username='Ivanov')
-
-    def setUp(self):
-        self.guest_client = Client()
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-
+class UserPagesTests(BaseTest):
     def test_users_signup_page_uses_correct_template(self):
         """URL-адрес 'users:signup' использует шаблон users/signup.html."""
         response = self.guest_client.get(reverse('users:signup'))

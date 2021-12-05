@@ -1,18 +1,9 @@
 from http import HTTPStatus
 
-from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
-
-User = get_user_model()
+from posts.tests.my_fixtures.posts_fixture import BaseTest
 
 
-class PostURLTests(TestCase):
-    def setUp(self):
-        self.guest_client = Client()
-        self.user = User.objects.create_user(username='Sidorov')
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-
+class PostURLTests(BaseTest):
     def test_create_page_anonymous(self):
         """Страница /auth/signup/ доступна любому пользователю."""
         response = self.guest_client.get('/auth/signup/')

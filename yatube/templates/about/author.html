@@ -1,10 +1,23 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Об авторе проекта{% endblock %}
 {% block content %}
-<h1>Привет, я автор</h1>
-<p>
-  Тут я размещу информацию о себе используя свои умения верстать.
-  Картинки, блоки, элементы бустрап. А может быть, просто напишу несколько абзацев текста.
-</p>
+<div class="container py-5">
+  <h1 class="title mb-5">Обо мне</h1>
+  <div class="card mx-auto" style="max-width: 800px;">
+    <img class="card-img" src="{% static '/img/img/bg.jpg'%}" alt="...">
+    <div class="card-img-overlay text-white">
+      <div class="text-center">
+        <h6 class="card-subtitle mb-5 text-muted">Меня зовут</h6>
+        <h3 class="card-title mb-5">Елена Денисова</h3>
+        <p class="card-text mb-5">Это учебный проект и это мой первый опыт работы с фреймворком Django.</p>
+        <div class="card-subtitle mb-5 text-muted">
+          <p class="mb-5"><img src="{% static '/img/img/mail.svg'%}" alt=""> dennisal@test.com</p>
+        </div>
+          <a href="{% url 'posts:index' %}" class="btn btn-light">Перейти на главную</a>
+      </div><!-- /.text-center -->
+    </div><!--card-img-overlay text-white -->
+  </div><!-- /.card mx-auto -->
+</div><!-- /.container py-5 -->
 {% endblock %}
