@@ -11,6 +11,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '[::1]',
     'testserver',
+    'www.sniki.pythonanywhere.com',
+    'sniki.pythonanywhere.com',
 ]
 
 INTERNAL_IPS = [
